@@ -1,21 +1,23 @@
-# VesiclePy: Deep Learning Toolkit for Synaptic Vesicle Analysis
+# VesiclePy: A Comprehensive Vesicle Analysis Toolbox for Volume Electron Microscopy
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.10%2B-red.svg)](https://pytorch.org/)
 
-VesiclePy is a deep learning toolkit for synaptic vesicle analysis in electron microscopy data, providing tools for segmentation, classification, and statistical analysis of vesicles, along with web-based proofreading tools and visualization capabilities.
+VesiclePy is a deep learning toolkit for vesicle analysis in serial electron microscopy data (with a special focus on large vesicles outside of synapse), providing tools for segmentation, classification, spatial and statistical analysis of vesicles, along with web-based proofreading tools and visualization capabilities, as well as neuron classification with vesicle and morphology information. 
+
 
 ![Workflow Overview](flowchart.png)
 
 # Key Features
 
-- **Automated Segmentation**: Deep learning-based instance and semantic segmentation of vesicles in EM data
+- **Automated Segmentation**: Deep learning-based instance and semantic segmentation of vesicles in vEM data
 - **Multi-class Classification**: Supervised learning for vesicle type identification and morphological analysis
 - **Unsupervised Learning**: VAE-based embeddings for discovering vesicle patterns and clustering
 - **Interactive Proofreading**: Web-based tools for quality control and manual correction of automated results
-- **Statistical Analysis**: Comprehensive tools for vesicle distribution analysis and morphometric studies
+- **Spatial and Morphology Analysis**: Comprehensive tools for vesicle distribution analysis and morphometric studies
 - **Multi-modal Visualization**: 2D/3D visualization with Neuroglancer, Plotly, PyVista, and custom HTML viewers
+- **Neuron classification**: Unsupervised clustering of neuron types from vesicle and neuron morphology data
 
 # Supported Data Formats
 
@@ -44,7 +46,6 @@ VesiclePy supports various data formats commonly used in connectomics:
   do_inference(image_path, prediction_path, config_files, checkpoint_path)
   ```
 - **Evaluation**: Compute precision, recall, and adapted RAND metrics
-- **Visualization**: Neuroglancer integration for 3D viewing
 
 ### `ves_cls/` - Vesicle Classification
 **Supervised deep learning for vesicle type classification and morphological analysis**
@@ -62,8 +63,8 @@ VesiclePy supports various data formats commonly used in connectomics:
 - **Dimensionality Reduction**: Compress high-dimensional vesicle features
 - **Clustering Analysis**: Discover vesicle subtypes without labeled data
 
-### `ves_ncls/` - Morphological Clustering
-**Advanced clustering analysis of vesicle morphological features**
+### `ves_ncls/` - Neuron Classification
+**Advanced clustering analysis of neurons from vesicle and morphological features**
 
 - **Mixed Data Handling**: Process numerical and categorical features
 - **Gower Distance**: Handle heterogeneous feature types
@@ -76,7 +77,7 @@ VesiclePy supports various data formats commonly used in connectomics:
 
 ## Analysis and Visualization
 
-### `ves_analysis/` - Statistical Analysis
+### `ves_analysis/` - Spatial and MorphologyAnalysis
 **Comprehensive tools for vesicle distribution analysis**
 
 - **Spatial Analysis**: Vesicle distribution patterns and clustering
@@ -108,8 +109,8 @@ To install all dependencies, use the central `requirements.txt` file:
 
 ```bash
 # Clone the repository
-git clone https://github.com/PytorchConnectomics/VesiclePy.git
-cd VesiclePy
+git clone https://github.com/PytorchConnectomics/vesiclePy.git
+cd vesiclePy
 
 # Install all dependencies
 pip install -r requirements.txt
@@ -118,3 +119,4 @@ pip install -r requirements.txt
 # License
 
 VesiclePy is released under the MIT License. See LICENSE file for details.
+

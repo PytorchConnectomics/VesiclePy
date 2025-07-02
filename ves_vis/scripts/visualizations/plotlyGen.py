@@ -52,7 +52,9 @@ def vesicles_to_plotly(
     output_html_path=None,
     marker_size=3,
     verbose=True,
-    neuron_opacity=0.3
+    neuron_opacity=0.3,
+    swap_vesicle_xz=False,
+    swap_mesh_xz=False
 ):
     """
     Loads a neuron mesh and vesicle COMs from a parquet file, optionally filters by sample,
@@ -68,6 +70,8 @@ def vesicles_to_plotly(
     - marker_size (int): Marker size for vesicles.
     - verbose (bool): Print progress updates.
     - neuron_opacity (float): Opacity of the neuron mesh.
+    - swap_vesicle_xz (bool): Swap X and Z coordinates for vesicle data.
+    - swap_mesh_xz (bool): Swap X and Z coordinates for mesh data.
 
     Returns:
     - fig (plotly.graph_objects.Figure): The interactive Plotly figure.
@@ -97,10 +101,17 @@ def vesicles_to_plotly(
         if neuron_mesh.is_empty:
             raise ValueError("Neuron mesh is empty.")
 
+        # Apply coordinate swapping for mesh if requested
+        mesh_vertices = neuron_mesh.vertices.copy()
+        if swap_mesh_xz:
+            if verbose:
+                print("Swapping X and Z coordinates for neuron mesh...")
+            mesh_vertices[:, [0, 2]] = mesh_vertices[:, [2, 0]]
+
         neuron_trace = go.Mesh3d(
-            x=neuron_mesh.vertices[:, 0],
-            y=neuron_mesh.vertices[:, 1],
-            z=neuron_mesh.vertices[:, 2],
+            x=mesh_vertices[:, 0],
+            y=mesh_vertices[:, 1],
+            z=mesh_vertices[:, 2],
             i=neuron_mesh.faces[:, 0],
             j=neuron_mesh.faces[:, 1],
             k=neuron_mesh.faces[:, 2],
@@ -115,10 +126,20 @@ def vesicles_to_plotly(
         print(f"Computing colors using {colormap} over {color_by or '[default gray]'}")
     colors = compute_vertex_colors(df, color_by=color_by, colormap=colormap)
 
+    # Apply coordinate swapping for vesicles if requested
+    vesicle_x = df["x"]
+    vesicle_y = df["y"] 
+    vesicle_z = df["z"]
+    
+    if swap_vesicle_xz:
+        if verbose:
+            print("Swapping X and Z coordinates for vesicle data...")
+        vesicle_x, vesicle_z = vesicle_z, vesicle_x
+
     scatter_trace = go.Scatter3d(
-        x=df["x"],
-        y=df["y"],
-        z=df["z"],
+        x=vesicle_x,
+        y=vesicle_y,
+        z=vesicle_z,
         mode='markers',
         marker=dict(
             size=marker_size,
@@ -210,6 +231,18 @@ def main():
     )
     
     parser.add_argument(
+        "--swap-vesicle-xz",
+        action="store_true",
+        help="Swap X and Z coordinates for vesicle data to fix coordinate system alignment"
+    )
+    
+    parser.add_argument(
+        "--swap-mesh-xz",
+        action="store_true",
+        help="Swap X and Z coordinates for mesh data to fix coordinate system alignment"
+    )
+    
+    parser.add_argument(
         "-q", "--quiet",
         action="store_true",
         help="Suppress verbose output"
@@ -236,7 +269,9 @@ def main():
             output_html_path=args.output,
             marker_size=args.marker_size,
             verbose=not args.quiet,
-            neuron_opacity=args.neuron_opacity
+            neuron_opacity=args.neuron_opacity,
+            swap_vesicle_xz=args.swap_vesicle_xz,
+            swap_mesh_xz=args.swap_mesh_xz
         )
         
         if not args.quiet:

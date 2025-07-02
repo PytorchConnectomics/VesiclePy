@@ -1,8 +1,9 @@
-# Cluster Analysis of Vesicle Morphology
+# Neuron Classification
 
-This project performs a cluster analysis on morphological data of vesicles to identify distinct structural groups. The analysis uses a dataset of 20 vesicle samples, characterized by a combination of numerical (e.g., 'TotalVol', 'NucVol', 'TotalLen') and categorical (e.g., 'Branch' type) features.
+This module performs a cluster analysis on morphological data of neurons and vesicles to identify distinct neuron subtypes. The analysis uses a morphology dataset of 20 neuron samples, characterized by a combination of numerical (e.g., 'TotalVol', 'NucVol', 'TotalLen') and categorical (e.g., 'Branch' type) features, as well as vesicle numbers by type (e.g., ‘CV’, ‘DCV’ and ‘DCH’). 
 
 The primary methods employed include:
+* The data used to perform the cluster analysis is included in the Jupyter Notebook.
 * Log transformation for numerical features.
 * Gower's distance to handle mixed data types.
 * Hierarchical agglomerative clustering (complete linkage method).
@@ -19,3 +20,4 @@ The analysis is performed in a Python environment. The key dependencies are:
 * gower
 * matplotlib (for plotting)
 * scikit-learn (for MDS)
+

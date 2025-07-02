@@ -2,6 +2,24 @@
 
 This module provides comprehensive visualization tools for vesicle and neuron data. It includes data conversion scripts, mesh generation utilities, and multiple visualization backends including HTML viewers, interactive Plotly plots, PyVista 3D scenes, and Neuroglancer integration.
 
+## Quick Start
+
+To immediately try the visualization pipeline with sample data:
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run complete pipeline (3 commands)
+python scripts/conversion/dfGen.py sample/7-13_com_mapping.txt --output sample/sample_vesicles.parquet --types-dir sample/ --compute-neighbors
+python scripts/conversion/neuron_mesh_gen.py sample/7-13_mask.h5 sample/sample_neuron.obj --format obj  
+python scripts/visualizations/plotlyGen.py sample/sample_vesicles.parquet --neuron-mesh sample/sample_neuron.obj --sample-id 7-13 --color-by type --output sample/sample_visualization.html --swap-vesicle-xz
+
+# Open sample/sample_visualization.html in your browser
+```
+
+## Setup
+
 For setup, install the core dependencies and optional visualization packages as needed:
 ```bash
 pip install -r requirements.txt
@@ -63,7 +81,8 @@ python scripts/visualizations/plotlyGen.py vesicles.parquet \
     --neuron-mesh neuron.obj \
     --sample-id SHL17 \
     --color-by type \
-    --output interactive_plot.html
+    --output interactive_plot.html \
+    --swap-vesicle-xz
 ```
 
 ### PyVista 3D Rendering
@@ -83,38 +102,67 @@ python scripts/visualizations/neuroglancerGen.py neuron_h5_files/ vesicles.h5 of
     --keep-open
 ```
 
-## Complete Workflow Example
+## An Example Visualization On Sample Data
 
-Process sample data from raw mapping files to final visualization:
+This complete pipeline demonstrates how to process raw vesicle mapping files into a final interactive 3D visualization using plotly. Follow these exact steps to reproduce the visualization:
 
+For a large-scale visualization of the case study Hydra Vulgaris dataset, see: [https://akgohain.github.io/hydra_types/](https://akgohain.github.io/hydra_types/), where vesicles in all 20 neurons are colored by type.
+
+### Prerequisites
 ```bash
-# 1. Extract vesicle data from mapping files
-python scripts/conversion/dfGen.py sample_data/mapping_files/ \
-    --output sample_vesicles.parquet \
-    --types-dir sample_data/labels/ \
-    --compute-neighbors
-
-# 2. Generate neuron mesh from HDF5 mask
-python scripts/conversion/neuron_mesh_gen.py sample_data/neuron_SHL17.h5 sample_neuron.glb \
-    --format glb
-
-# 3. Create interactive visualization
-python scripts/visualizations/plotlyGen.py sample_vesicles.parquet \
-    --neuron-mesh sample_neuron.glb \
-    --sample-id sample_id \
-    --color-by type \
-    --output sample_visualization.html
+# Set up Python environment and install dependencies
+pip install -r requirements.txt
 ```
 
-Open `sample_visualization.html` in your browser to view the interactive 3D visualization.
+### Complete Pipeline
 
-## Notes
+**Step 1: Extract vesicle data from mapping files**
+```bash
+python scripts/conversion/dfGen.py sample/7-13_com_mapping.txt \
+    --output sample/sample_vesicles.parquet \
+    --types-dir sample/ \
+    --compute-neighbors
+```
+This processes the raw COM mapping file and type labels, computing vesicle coordinates, volumes, radii, types, and neighbor counts. The script automatically handles coordinate system conversion.
 
-- **File Formats**: Supports multiple mesh formats (OBJ, PLY, GLB, STL) and data formats (Parquet, CSV, JSON)
-- **Coordinate Systems**: Automatically handles X/Z coordinate swapping for proper spatial alignment
-- **Memory Management**: Large datasets are processed in chunks with explicit garbage collection
-- **Remote Usage**: Neuroglancer requires port forwarding when running on remote servers
-- **Dependencies**: Install visualization packages only as needed to minimize setup complexity
+**Step 2: Generate neuron mesh from HDF5 mask**
+```bash
+python scripts/conversion/neuron_mesh_gen.py sample/7-13_mask.h5 sample/sample_neuron.obj \
+    --format obj
+```
+This converts the 3D neuron mask volume into a surface mesh using marching cubes algorithm with preprocessing steps including binary closing, gap filling, and Gaussian filtering.
+
+**Step 3: Create interactive visualization**
+```bash
+python scripts/visualizations/plotlyGen.py sample/sample_vesicles.parquet \
+    --neuron-mesh sample/sample_neuron.obj \
+    --sample-id 7-13 \
+    --color-by type \
+    --output sample/sample_visualization.html \
+    --swap-vesicle-xz
+```
+This generates the final interactive 3D visualization with properly aligned vesicles and neuron mesh. The `--swap-vesicle-xz` flag is essential for correct spatial alignment.
+
+### Results
+- **sample_vesicles.parquet**: Processed vesicle data (204 vesicles, ~12KB)
+- **sample_neuron.obj**: 3D neuron mesh (~82MB)
+- **sample_visualization.html**: Interactive web-based 3D visualization (~67MB)
+
+Open `sample_visualization.html` in your browser to view the interactive 3D visualization with:
+- Vesicles colored by type using the viridis colormap
+- Semi-transparent neuron mesh for spatial context
+- Interactive controls for rotation, zoom, and inspection
+
+## Troubleshooting
+
+**Coordinate Alignment Issues**: If vesicles appear misaligned with the neuron mesh:
+- Use `--swap-vesicle-xz` flag in plotlyGen.py (recommended for most cases)
+- Use `--swap-mesh-xz` flag to swap mesh coordinates instead
+- Use both flags if needed for specific coordinate systems
+
+**Mesh Generation Warnings**: The "hole filling" warning is normal and doesn't affect the final visualization quality.
+
+**Memory Issues**: For large datasets, the scripts automatically process data in chunks with garbage collection.
 
 ---
 

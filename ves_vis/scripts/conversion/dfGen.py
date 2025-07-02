@@ -63,14 +63,13 @@ def extract_vesicle_data(
 
     records = []
     pattern = re.compile(
-        r'\((\d+\.?\d*), (\d+\.?\d*), (\d+\.?\d*)\): \(\'(\w+)\', (\w+_\d+), (\d+), (\d+\.?\d*(?:e[-+]?\d+)?)'
+        r'\[\s*([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s*\]:\s*\(\'(\w+)\',\s*(\w+_\d+),\s*(\d+),\s*([0-9.e+-]+)'
     )
 
     file_iterator = tqdm(all_files, desc="Processing mapping files", unit="file") if verbose else all_files
     for file_path in file_iterator:
         if verbose:
             print(f"Processing mapping file: {file_path.name}")
-        vesicle_type = "lv" if "_lv_" in file_path.name else "sv"
         sample_id = file_path.stem.split('_')[0]
 
         with open(file_path, 'r') as f:
@@ -80,7 +79,7 @@ def extract_vesicle_data(
 
         for match in matches:
             x, y, z = float(match[0]), float(match[1]), float(match[2])
-            _, v_id, volume, radius = match[3], match[4], int(match[5]), float(match[6])
+            vesicle_type, v_id, volume, radius = match[3], match[4], int(match[5]), float(match[6])
             records.append({
                 "sample_id": sample_id,
                 "vesicle_type": vesicle_type,
