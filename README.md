@@ -1,7 +1,7 @@
 # VesiclePy: A Comprehensive Vesicle Analysis Toolbox for Volume Electron Microscopy
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.10%2B-red.svg)](https://pytorch.org/)
 
 VesiclePy is a deep learning toolkit for vesicle analysis in serial electron microscopy data (with a special focus on large vesicles outside of synapse), providing tools for segmentation, classification, spatial and statistical analysis of vesicles, along with web-based proofreading tools and visualization capabilities, as well as neuron classification with vesicle and morphology information. 
@@ -105,7 +105,7 @@ VesiclePy supports various data formats commonly used in connectomics:
 
 ## Requirements
 
-To install all dependencies, use the central `requirements.txt` file:
+VesiclePy requires Python 3.10 or higher. To install all dependencies, use the central `requirements.txt` file:
 
 ```bash
 # Clone the repository
@@ -119,4 +119,5 @@ pip install -r requirements.txt
 # License
 
 VesiclePy is released under the MIT License. See LICENSE file for details.
+
 
