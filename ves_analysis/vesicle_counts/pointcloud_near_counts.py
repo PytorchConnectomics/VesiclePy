@@ -32,6 +32,11 @@ neuron_info = {"KR4": [1, 5], "KR5": [2, 2], "KR6": [4, 2], "SHL55": [3, 5], "PN
 			"RGC2": [6, 5], "KM4": [9, 5], "NET12": [15, 5], "NET10": [16, 1], "NET11": [14, 1], "PN7": [12, 5], "SHL18": [18, 1], 
 			"SHL24": [5, 1], "SHL28": [20, 1], "RGC7": [13, 1], "SHL17": [19, 4]}
 
+def neuron_id_to_name(nid):
+	reversed_dict = {v: k for k, v in neuron_dict.items()}
+	if isinstance(nid, int):
+		nid = [nid]
+	return [reversed_dict[x] for x in nid]  
 
 
 def read_txt_to_dict(name, which):
@@ -46,8 +51,10 @@ def read_txt_to_dict(name, which):
 	with open(file_path, 'r') as file:
 		for line in file:
 			key_string, value_string = line.split(": ")
-			value_string = re.sub(r'\b(lv_\d+)\b', r"'\1'", value_string) #change into string literals
-			value_string = re.sub(r'\b(sv_\d+)\b', r"'\1'", value_string) #same for sv
+			#value_string = re.sub(r'\b(lv_\d+)\b', r"'\1'", value_string) #change into string literals
+			value_string = re.sub(r"(?<!['\"])(\blv_\d+\b|\bnew\b|\blv\b)(?!['\"])", r"'\1'", value_string)
+			#value_string = re.sub(r'\b(sv_\d+)\b', r"'\1'", value_string) #same for sv
+			value_string = re.sub(r"(?<!['\"])(\bsv_\d+\b|\bnew\b|\blv\b)(?!['\"])", r"'\1'", value_string)
 
 			coords_str = key_string.replace("[", "").replace("]", "").strip()
 			coords_str = re.sub(r'[\(\)\,]', '', coords_str) #strip parens
@@ -56,7 +63,6 @@ def read_txt_to_dict(name, which):
 			coords_list=coords_str.split()
 			coords = [float(coord) for coord in coords_list]
 
-			
 			attributes = ast.literal_eval(value_string)
 			results_dict[tuple(coords)]=list(attributes)
 
@@ -79,6 +85,8 @@ def lv_labels_dict(file_path):
 
 
 def load_data(name): #load into cache
+	print("loading for: ", name)
+
 	if(name=="sample"):
 		file_path = f'{sample_dir}sample_data/7-13_mask.h5'
 	else:
@@ -89,7 +97,6 @@ def load_data(name): #load into cache
 	print("done loading neuron box")
 
 	cache["lv_mapping"] = read_txt_to_dict(name, "lv")
-	#cache["sv_mapping"] = read_txt_to_dict(name, "sv") #not needed for near neuron counts
 
 
 
@@ -176,6 +183,7 @@ def read_yml(filename):
         data = yaml.safe_load(file)
     return data
 
+
 if __name__ == "__main__":
 
 	neuron_dict = read_yml('/projects/weilab/dataset/hydra/mask_mip1/neuron_id.txt')
@@ -250,7 +258,8 @@ if __name__ == "__main__":
 		expanded_others = expand_mask(other_neurons, lv_threshold, mask_res)
 		print("mask expanding done")
 		cache["intersections"] = mask_intersection((neuron_only, expanded_others))
-		print("size of intersection region: ", np.sum(cache["intersections"]))
+		intersection_volume = np.sum(cache["intersections"])*(mask_res[0]*mask_res[1]*mask_res2) #nm
+		print("size of intersection region: ", intersection_volume)
 		print("mask intersection done")
 		total_num, nn_lv = calculate_vesicles_within(name, "intersections") #name of cache file
 		num_far = total_num-nn_lv
@@ -269,7 +278,8 @@ if __name__ == "__main__":
 		expanded_others = expand_mask(other_neurons, cv_threshold, mask_res)
 		print("mask expanding done")
 		cache["intersections"] = mask_intersection((neuron_only, expanded_others))
-		print("size of intersection region: ", np.sum(cache["intersections"]))
+		intersection_volume = np.sum(cache["intersections"])*(mask_res[0]*mask_res[1]*mask_res2) #nm
+		print("size of intersection region: ", intersection_volume)
 		print("mask intersection done")
 		total_num, nn_lv = calculate_vesicles_within(name, "intersections", which=1) #name of cache file
 		num_far = total_num-nn_lv
@@ -287,7 +297,8 @@ if __name__ == "__main__":
 		expanded_others = expand_mask(other_neurons, dv_threshold, mask_res)
 		print("mask expanding done")
 		cache["intersections"] = mask_intersection((neuron_only, expanded_others))
-		print("size of intersection region: ", np.sum(cache["intersections"]))
+		intersection_volume = np.sum(cache["intersections"])*(mask_res[0]*mask_res[1]*mask_res2) #nm
+		print("size of intersection region: ", intersection_volume)
 		print("mask intersection done")
 		total_num, nn_lv = calculate_vesicles_within(name, "intersections", which=2) #name of cache file
 		num_far = total_num-nn_lv
@@ -305,7 +316,8 @@ if __name__ == "__main__":
 		expanded_others = expand_mask(other_neurons, dv_threshold, mask_res)
 		print("mask expanding done")
 		cache["intersections"] = mask_intersection((neuron_only, expanded_others))
-		print("size of intersection region: ", np.sum(cache["intersections"]))
+		intersection_volume = np.sum(cache["intersections"])*(mask_res[0]*mask_res[1]*mask_res2) #nm
+		print("size of intersection region: ", intersection_volume)
 		print("mask intersection done")
 		total_num, nn_lv = calculate_vesicles_within(name, "intersections", which=3) #name of cache file
 		num_far = total_num-nn_lv
@@ -318,10 +330,10 @@ if __name__ == "__main__":
 		print(f"{name} DVH done\n")
 
 
-
 	#loop thru all neurons
 	elif(which_neurons=="all"):
-		names_list = names_20
+		names_list = ["SHL24", "NET11", "RGC7", "NET10", "SHL18", "SHL28", "KR5", "KR6", "PN3"]
+
 		for name in names_list:
 			#neuron id/type info
 			neuron_id = neuron_info[name][0]
@@ -344,18 +356,18 @@ if __name__ == "__main__":
 
 			#restrict to only neurons w these names:
 			included_neuron_types = [1,2,3]
-			other_included_names = ["SHL29", "SHL53", "PN8", "SHL26", "SHL51", "KM1", "KM2"]
+			other_included_names = ["SHL29", "SHL53", "PN8", "SHL26", "SHL51", "KM1", "KM2", "SHL52"]
 			total_to_include = [n for n in neuron_dict.keys() if ((n in other_included_names) or (n in neuron_info.keys() and neuron_info[n][1] in included_neuron_types))]
 			included_ids = [neuron_dict[n] for n in total_to_include] #turns list of names into list of IDs
 			print("included ids: ", included_ids) #overall
 			print("total num of IDs: ", len(neuron_dict), "num of potentially included IDs: ", len(included_ids))
 
+			#if doing for all overlaps, ignoring specific handshake info
+			'''
 			other_neurons[(neurons!=nid) & (neurons!=0) & np.isin(neurons, included_ids)] = 1 #binary mask
 			print("final size of other_neurons mask in voxels: ", np.sum(other_neurons))
 
-
-
-			removed_neurons = []
+			removed_neurons = [] #tracking difference when restricting to 1,2,3,unrestricted neuron types.
 			for segid in np.unique(neurons):
 				if(segid not in included_ids):
 					removed_neurons.append(segid)
@@ -363,84 +375,111 @@ if __name__ == "__main__":
 			if(removed_neurons==[0]):
 				print("NO CHANGE for ", name)
 
+			handshake_name = "all" #for dataframe uniformity
+			'''
+
+			for handshake_id in included_ids:
+
+				handshake_name = neuron_id_to_name(handshake_id)[0]
+				print("handshake name: ", handshake_name)
+				#handshake_type = neuron_info[handshake_name][1] #might not be complete
+				if handshake_name not in neuron_info:
+					print("error - type of handshaking neuron is missing")
+				
+
+				other_neurons[(neurons!=nid) & (neurons!=0) & np.isin(neurons, handshake_id)] #just the one handshake
+				
+				#only append to dataframe if vesicles within is nonzero
+				#expand by sufficient amt, check if any nonzero intersection with target
+				print("check for nonzero intersection")
+				expanded_others = expand_mask(other_neurons, 830, mask_res) #choose a threshold larger than all LV, CV, DV, DVH thresholds
+				intersection = np.bitwise_and.reduce([neuron_only, expanded_others])
+				volume = np.sum(intersection) #voxels
+
+				print("voxel intersection volume of ", handshake_name, "with", name, "is", volume)
+				if(volume > 0): 
+					print("continuing\n")
 
 
-			print("LV")
-			expanded_others = expand_mask(other_neurons, lv_threshold, mask_res)
-			print("mask expanding done")
-			cache["intersections"] = mask_intersection((neuron_only, expanded_others))
-			print("size of intersection region: ", np.sum(cache["intersections"]))
-			print("mask intersection done")
-			total_num, nn_lv = calculate_vesicles_within(name, "intersections") #name of cache file
-			num_far = total_num-nn_lv
-			print("num outside of region: ", num_far)
-			del expanded_others, cache["intersections"]
-			gc.collect()
-			#append to individual row of the results output
-			results.append([name, neuron_id, neuron_type, "LV", total_num, nn_lv, num_far, lv_threshold])
+					print("LV")
+					expanded_others = expand_mask(other_neurons, lv_threshold, mask_res)
+					print("mask expanding done")
+					cache["intersections"] = mask_intersection((neuron_only, expanded_others))
+					intersection_volume = np.sum(cache["intersections"])*(mask_res[0]*mask_res[1]*mask_res2) #nm
+					print("size of intersection region: ", intersection_volume)
+					print("mask intersection done")
+					total_num, nn_lv = calculate_vesicles_within(name, "intersections") #name of cache file
+					num_far = total_num-nn_lv
+					print("num outside of region: ", num_far)
+					del expanded_others, cache["intersections"]
+					gc.collect()
+					#append to individual row of the results output
+					results.append([name, neuron_id, neuron_type, handshake_name, handshake_id, intersection_volume, "LV", total_num, nn_lv, num_far, lv_threshold])
 
-			print(f"{name} LV done \n")
-		
-
-
-			#cv
-			print("CV")
-			expanded_others = expand_mask(other_neurons, cv_threshold, mask_res)
-			print("mask expanding done")
-			cache["intersections"] = mask_intersection((neuron_only, expanded_others))
-			print("size of intersection region: ", np.sum(cache["intersections"]))
-			print("mask intersection done")
-			total_num, nn_lv = calculate_vesicles_within(name, "intersections", which=1) #name of cache file
-			num_far = total_num-nn_lv
-			print("num outside of region: ", num_far)
-			del expanded_others, cache["intersections"]
-			gc.collect()
-			#append to individual row of the results output
-			results.append([name, neuron_id, neuron_type, "CV", total_num, nn_lv, num_far, cv_threshold])
-			print(f"{name} CV done \n")
+					print(f"{name} LV done \n")
+				
 
 
-
-			#dv
-			print("DV")
-			expanded_others = expand_mask(other_neurons, dv_threshold, mask_res)
-			print("mask expanding done")
-			cache["intersections"] = mask_intersection((neuron_only, expanded_others))
-			print("size of intersection region: ", np.sum(cache["intersections"]))
-			print("mask intersection done")
-			total_num, nn_lv = calculate_vesicles_within(name, "intersections", which=2) #name of cache file
-			num_far = total_num-nn_lv
-			print("num outside of region: ", num_far)
-			del expanded_others, cache["intersections"]
-			gc.collect()
-			#append to individual row of the results output
-			results.append([name, neuron_id, neuron_type, "DV", total_num, nn_lv, num_far, dv_threshold])
-			print(f"{name} DV done \n")
-
-
-
-			#dvh
-			print("DVH")
-			expanded_others = expand_mask(other_neurons, dvh_threshold, mask_res)
-			print("mask expanding done")
-			cache["intersections"] = mask_intersection((neuron_only, expanded_others))
-			print("size of intersection region: ", np.sum(cache["intersections"]))
-			print("mask intersection done")
-			total_num, nn_lv = calculate_vesicles_within(name, "intersections", which=3) #name of cache file
-			num_far = total_num-nn_lv
-			print("num outside of region: ", num_far)
-			del expanded_others, cache["intersections"]
-			gc.collect()
-			#append to individual row of the results output
-			results.append([name, neuron_id, neuron_type, "DVH", total_num, nn_lv, num_far, dvh_threshold])
-
-			print(f"{name} DVH done\n")
+					#cv
+					print("CV")
+					expanded_others = expand_mask(other_neurons, cv_threshold, mask_res)
+					print("mask expanding done")
+					cache["intersections"] = mask_intersection((neuron_only, expanded_others))
+					intersection_volume = np.sum(cache["intersections"])*(mask_res[0]*mask_res[1]*mask_res2) #nm
+					print("size of intersection region: ", intersection_volume)
+					print("mask intersection done")
+					total_num, nn_lv = calculate_vesicles_within(name, "intersections", which=1) #name of cache file
+					num_far = total_num-nn_lv
+					print("num outside of region: ", num_far)
+					del expanded_others, cache["intersections"]
+					gc.collect()
+					#append to individual row of the results output
+					results.append([name, neuron_id, neuron_type, handshake_name, handshake_id, intersection_volume, "CV", total_num, nn_lv, num_far, cv_threshold])
+					print(f"{name} CV done \n")
 
 
 
-	df = pd.DataFrame(results, columns=["Neuron", "Neuron ID", "Neuron type", "Vesicle type", "Total num", "Near neuron", "Not near neuron", "Nearness threshold (nm)"])
+					#dv
+					print("DV")
+					expanded_others = expand_mask(other_neurons, dv_threshold, mask_res)
+					print("mask expanding done")
+					cache["intersections"] = mask_intersection((neuron_only, expanded_others))
+					intersection_volume = np.sum(cache["intersections"])*(mask_res[0]*mask_res[1]*mask_res2) #nm
+					print("size of intersection region: ", intersection_volume)
+					print("mask intersection done")
+					total_num, nn_lv = calculate_vesicles_within(name, "intersections", which=2) #name of cache file
+					num_far = total_num-nn_lv
+					print("num outside of region: ", num_far)
+					del expanded_others, cache["intersections"]
+					gc.collect()
+					#append to individual row of the results output
+					results.append([name, neuron_id, neuron_type, handshake_name, handshake_id, intersection_volume, "DV", total_num, nn_lv, num_far, dv_threshold])
+					print(f"{name} DV done \n")
+
+
+					#dvh
+					print("DVH")
+					expanded_others = expand_mask(other_neurons, dvh_threshold, mask_res)
+					print("mask expanding done")
+					cache["intersections"] = mask_intersection((neuron_only, expanded_others))
+					intersection_volume = np.sum(cache["intersections"])*(mask_res[0]*mask_res[1]*mask_res2) #nm
+					print("size of intersection region: ", intersection_volume)
+					print("mask intersection done")
+					total_num, nn_lv = calculate_vesicles_within(name, "intersections", which=3) #name of cache file
+					num_far = total_num-nn_lv
+					print("num outside of region: ", num_far)
+					del expanded_others, cache["intersections"]
+					gc.collect()
+					#append to individual row of the results output
+					results.append([name, neuron_id, neuron_type, handshake_name, handshake_id, intersection_volume, "DVH", total_num, nn_lv, num_far, dvh_threshold])
+
+					print(f"{name} DVH done\n")
+
+
+
+	df = pd.DataFrame(results, columns=["Neuron", "Neuron ID", "Neuron type", "Handshake name", "Handshake ID", "Intersection volume", "Vesicle type", "Total num", "Near neuron", "Not near neuron", "Nearness threshold (nm)"])
 	if(which_neurons=="all"):
-		export_path = "/home/rothmr/hydra/sheet_exports/lv_near_counts.xlsx"
+		export_path = "/home/rothmr/hydra/sheet_exports/near_handshake_counts.xlsx"
 	elif(which_neurons=="sample"):
 		export_path = f"{sample_dir}sample_outputs/sample_near_counts.xlsx"
 	df.to_excel(export_path, index=False)
@@ -448,21 +487,5 @@ if __name__ == "__main__":
 	print("done")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	#pointcloud_near_counts.py --which_neurons "all" --lv_threshold 708.4388202 --cv_threshold 756.0435442 --dv_threshold 546.4010465 --dvh_threshold 827.825424
 
