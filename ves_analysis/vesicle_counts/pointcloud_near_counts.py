@@ -387,7 +387,7 @@ if __name__ == "__main__":
 					print("error - type of handshaking neuron is missing")
 				
 
-				other_neurons[(neurons!=nid) & (neurons!=0) & np.isin(neurons, handshake_id)] #just the one handshake
+				other_neurons[(neurons!=nid) & (neurons!=0) & np.isin(neurons, handshake_id)] = 1 #just the one handshake
 				
 				#only append to dataframe if vesicles within is nonzero
 				#expand by sufficient amt, check if any nonzero intersection with target
