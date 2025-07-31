@@ -378,6 +378,13 @@ if __name__ == "__main__":
 			handshake_name = "all" #for dataframe uniformity
 			'''
 
+			#limit to those in the file
+			file_ids = [x for x in np.unique(neurons) if x != nid]
+			included_ids = list(set(included_ids) & set(file_ids))
+			included_ids = [int(npid) for npid in included_ids]
+			print("actually included IDs: ", included_ids)
+			print("num possible handshakes: ", len(included_ids))
+
 			for handshake_id in included_ids:
 
 				handshake_name = neuron_id_to_name(handshake_id)[0]
